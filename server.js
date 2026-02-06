@@ -64,6 +64,15 @@ function htmlLayout(title, content) {
   return `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>${title}</title><link rel="stylesheet" href="/public/styles.css" /></head><body>${content}</body></html>`;
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function activeExam(db) {
   const now = new Date().toISOString();
   return db.exams.slice().reverse().find((e) => e.startAt <= now && e.endAt >= now);
@@ -90,13 +99,13 @@ function finishPage(timeout) {
 }
 
 function adminPage(db, success) {
-  const examRows = db.exams.slice().reverse().map((e) => `<tr><td>${e.name}</td><td>${e.startDate} ${e.startTime} - ${e.endDate} ${e.endTime}</td><td><a href="${e.pdfPath}" target="_blank">Lihat PDF</a></td></tr>`).join('');
+  const examRows = db.exams.slice().reverse().map((e) => `<tr><td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.startDate)} ${escapeHtml(e.startTime)} - ${escapeHtml(e.endDate)} ${escapeHtml(e.endTime)}</td><td><a href="${escapeHtml(e.pdfPath)}" target="_blank">Lihat PDF</a></td></tr>`).join('');
   const studentRows = db.studentLogs.slice().reverse().map((s) => {
     const exam = db.exams.find((e) => e.id === s.examId);
-    return `<tr><td>${s.loginTimestamp}</td><td>${s.fullName}</td><td>${s.className}</td><td>${s.status}</td><td>${s.notes}</td><td>${exam ? exam.name : '-'}</td></tr>`;
+    return `<tr><td>${escapeHtml(s.loginTimestamp)}</td><td>${escapeHtml(s.fullName)}</td><td>${escapeHtml(s.className)}</td><td>${escapeHtml(s.status)}</td><td>${escapeHtml(s.notes)}</td><td>${escapeHtml(exam ? exam.name : '-')}</td></tr>`;
   }).join('');
 
-  return htmlLayout('Admin Ujian', `<div class="container admin-layout"><section class="card"><h1>Admin Sekolah - Buat Ujian</h1><a class="small-link" href="/admin/logout">Logout Admin</a>${success ? `<div class="success">${success}</div>` : ''}<form method="POST" action="/admin/exams" enctype="multipart/form-data" class="form-grid"><label>Nama Ujian<input type="text" name="examName" required/></label><label>Tanggal Mulai Ujian<input type="date" name="startDate" required/></label><label>Tanggal Akhir Ujian<input type="date" name="endDate" required/></label><label>Waktu Mulai Ujian<input type="time" name="startTime" required/></label><label>Waktu Berakhir Ujian<input type="time" name="endTime" required/></label><label>Upload PDF Soal<input type="file" name="pdfFile" accept="application/pdf" required/></label><button type="submit">Simpan Ujian</button></form></section><section class="card"><h2>Daftar Ujian</h2><table><thead><tr><th>Nama</th><th>Periode</th><th>File</th></tr></thead><tbody>${examRows}</tbody></table></section><section class="card"><h2>Data Siswa Ujian</h2><table><thead><tr><th>Timestamp Login</th><th>Nama</th><th>Kelas</th><th>Status Aktif/Belum Login</th><th>Keterangan</th><th>Ujian</th></tr></thead><tbody>${studentRows}</tbody></table></section></div>`);
+  return htmlLayout('Admin Ujian', `<div class="container admin-layout"><section class="card"><h1>Admin Sekolah - Buat Ujian</h1><a class="small-link" href="/admin/logout">Logout Admin</a>${success ? `<div class="success">${escapeHtml(success)}</div>` : ''}<form method="POST" action="/admin/exams" enctype="multipart/form-data" class="form-grid"><label>Nama Ujian<input type="text" name="examName" required/></label><label>Tanggal Mulai Ujian<input type="date" name="startDate" required/></label><label>Tanggal Akhir Ujian<input type="date" name="endDate" required/></label><label>Waktu Mulai Ujian<input type="time" name="startTime" required/></label><label>Waktu Berakhir Ujian<input type="time" name="endTime" required/></label><label>Upload PDF Soal<input type="file" name="pdfFile" accept="application/pdf" required/></label><button type="submit">Simpan Ujian</button></form></section><section class="card"><h2>Daftar Ujian</h2><table><thead><tr><th>Nama</th><th>Periode</th><th>File</th></tr></thead><tbody>${examRows}</tbody></table></section><section class="card"><h2>Data Siswa Ujian</h2><table><thead><tr><th>Timestamp Login</th><th>Nama</th><th>Kelas</th><th>Status Aktif/Belum Login</th><th>Keterangan</th><th>Ujian</th></tr></thead><tbody>${studentRows}</tbody></table></section></div>`);
 }
 
 function parseMultipart(bodyBuffer, contentType) {
