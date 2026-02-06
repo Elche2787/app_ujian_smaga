@@ -1,0 +1,9 @@
+{
+  "name": "app-ujian-smaga",
+  "version": "1.0.0",
+  "description": "Website ujian sekolah dengan panel admin dan monitoring siswa.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
